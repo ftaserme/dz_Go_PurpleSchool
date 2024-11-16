@@ -15,7 +15,7 @@ func main() {
 	value := getInputValue()
 	resultCurrency := getInput("\nВведите итоговую валюту", originalCurrency)
 	value = conversion(originalCurrency, value, resultCurrency)
-	fmt.Printf("Результат конвертации - %.2f", value)
+	fmt.Printf("\nРезультат конвертации - %.2f", value)
 }
 
 func getInput(output string, usingCurrency string) string {
