@@ -7,69 +7,86 @@ import (
 
 const usdToEur = 0.93
 const usdToRub = 98.29
-var eurToRub = usdToEur * usdToRub
+const eurToRub = usdToEur * usdToRub
 
 func main() {
-	fmt.Println("Добро пожаловать в конвертер валют!")
-	originalCurrency := getInput("Введите начальную валюту", "")
+	fmt.Println("\nДобро пожаловать в конвертер валют!")
+	originalCurrency := getInput("\nВведите начальную валюту", "")
 	value := getInputValue()
-	resultCurrency := getInput("Введите итоговую валюту", originalCurrency)
+	resultCurrency := getInput("\nВведите итоговую валюту", originalCurrency)
 	value = conversion(originalCurrency, value, resultCurrency)
 	fmt.Printf("Результат конвертации - %.2f", value)
 }
 
 func getInput(output string, usingCurrency string) string {
 	var userInput string
-	var outputCurrency = "(USD, EUR, RUB)"
+	var originalCurrency = "(USD, EUR, RUB)"
 	switch usingCurrency {
 	case "USD":
-		outputCurrency = "(EUR, RUB)"
+		originalCurrency = "(EUR, RUB)"
 	case "EUR":
-		outputCurrency = "(USD, RUB)"
+		originalCurrency = "(USD, RUB)"
 	case "RUB":
-		outputCurrency = "(USD, EUR)"
+		originalCurrency = "(USD, EUR)"
 	}
-	fmt.Printf(output + " " + outputCurrency +": ")
-	fmt.Scan(&userInput)
-	userInput = strings.ToUpper(userInput)
-	if userInput == usingCurrency && userInput != "" {
-		return getInput("Ошибка, эта валюта уже используется, введите другую", usingCurrency)
+	for {
+		fmt.Printf(output + " " + originalCurrency +": ")
+		fmt.Scan(&userInput)
+		userInput = strings.ToUpper(userInput)
+		if userInput == usingCurrency && userInput != "" {
+			fmt.Println("Ошибка, эта валюта уже используется, введите другую")
+			continue
+		}
+		if userInput != "USD" && userInput != "EUR" && userInput != "RUB" {
+			fmt.Println("Ошибка при вводе, попробуйте снова")
+			continue
+		}
+		return userInput
 	}
-	if userInput != "USD" && userInput != "EUR" && userInput != "RUB" {
-		return getInput("Ошибка при вводе, попробуйте снова", usingCurrency)
-	}
-	return userInput
 }
 
 func getInputValue () float64 {
 	var value float64
-	fmt.Printf("Введите количество валюты: ")
-	fmt.Scan(&value)
-	if value <= 0 {
-		fmt.Println("Ошибка ввода, попробуйте снова")
-		return getInputValue()
+	for {
+		fmt.Printf("\nВведите количество валюты: ")
+		fmt.Scan(&value)
+		if value <= 0 {
+			fmt.Println("Ошибка ввода, попробуйте снова")
+			continue
+		}
+		return value
 	}
-	fmt.Println(value)
-	return value
 }
 
-func conversion (originalСurrency string, value float64, resultCurrency string) float64 {
-	switch {
-	case originalСurrency == "USD" :
-		if resultCurrency == "RUB" {
-			return (value * usdToRub)
-		}
-		return value * usdToEur
-	case originalСurrency == "EUR" :
-		if resultCurrency == "USD" {
-			return (value / usdToEur)
-		}
-		return value * eurToRub
-	case originalСurrency == "RUB":
-		if resultCurrency == "EUR" {
-			return (value / eurToRub)
-		}
-		
+func conversion (originalCurrency string, value float64, resultCurrency string) float64 {
+	switch originalCurrency {
+	case "USD" :
+		return conversionUSD(value, resultCurrency)
+	case "EUR" :
+		return conversionEUR(value, resultCurrency)
+	case "RUB":
+		return conversionRUB(value, resultCurrency)
 	}
-	return (value / usdToRub)
+	return 0.0
+}
+
+func conversionUSD(value float64, resultCurrency string) float64 {
+	if resultCurrency == "RUB" {
+		return (value * usdToRub)
+	}
+	return (value * usdToEur)
+}
+
+func conversionEUR(value float64, resultCurrency string) float64 {
+	if resultCurrency == "USD" {
+		return (value / usdToEur)
+	}
+	return (value * eurToRub)
+}
+
+func conversionRUB(value float64, resultCurrency string) float64 {
+	if resultCurrency == "USD" {
+		return (value / usdToRub)
+	}
+	return (value / eurToRub)
 }
