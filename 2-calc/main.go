@@ -84,7 +84,7 @@ func getSum (numbers *[]int ) {
 
 
 func getMed (numbers *[]int, baseNum int) {
-	var maxNum, minNum = baseNum, baseNum
+	var maxNum, minNum = baseNum, baseNum //без BaseNum ругается, что слайс может быть пустой. Проверку на пустоту сделали при вводе числе - поэтому здесь она не нужна
 	var differ float64
 	for _, elem := range *numbers { // находим максимальное и минимальное числа
 		if elem > maxNum {
