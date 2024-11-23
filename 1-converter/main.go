@@ -5,16 +5,17 @@ import (
 	"strings"
 )
 
-const usdToEur = 0.93
-const usdToRub = 98.29
-var eurToRub = usdToEur * usdToRub
-
 func main() {
+	conversionValues := map[string]map[string]float64 {
+		"USD": {"EUR":0.96, "RUB":104.35},
+		"EUR": {"USD":1.04, "RUB":108.77},
+		"RUB": {"USD":0.0096, "EUR":0.0092},
+	}
 	fmt.Println("Добро пожаловать в конвертер валют!")
 	originalCurrency := getInput("Введите начальную валюту", "")
 	value := getInputValue()
 	resultCurrency := getInput("Введите итоговую валюту", originalCurrency)
-	value = conversion(originalCurrency, value, resultCurrency)
+	value = conversion(originalCurrency, value, resultCurrency, &conversionValues)
 	fmt.Printf("Результат конвертации - %.2f", value)
 }
 
@@ -29,47 +30,36 @@ func getInput(output string, usingCurrency string) string {
 	case "RUB":
 		outputCurrency = "(USD, EUR)"
 	}
-	fmt.Printf(output + " " + outputCurrency +": ")
-	fmt.Scan(&userInput)
-	userInput = strings.ToUpper(userInput)
-	if userInput == usingCurrency && userInput != "" {
-		return getInput("Ошибка, эта валюта уже используется, введите другую", usingCurrency)
+	for {
+		fmt.Printf(output + " " + outputCurrency +": ")
+		fmt.Scan(&userInput)
+		userInput = strings.ToUpper(userInput)
+		if userInput == usingCurrency && userInput != "" {
+			fmt.Println("Ошибка, эта валюта уже используется, введите другую")
+			continue
+		}
+		if userInput != "USD" && userInput != "EUR" && userInput != "RUB" {
+			fmt.Println("Ошибка при вводе, попробуйте снова")
+			continue
+		}
+		return userInput
 	}
-	if userInput != "USD" && userInput != "EUR" && userInput != "RUB" {
-		return getInput("Ошибка при вводе, попробуйте снова", usingCurrency)
-	}
-	return userInput
 }
 
 func getInputValue () float64 {
 	var value float64
-	fmt.Printf("Введите количество валюты: ")
-	fmt.Scan(&value)
-	if value <= 0 {
-		fmt.Println("Ошибка ввода, попробуйте снова")
-		return getInputValue()
+	for {
+		fmt.Printf("Введите количество валюты: ")
+		fmt.Scan(&value)
+		if value <= 0 {
+			fmt.Println("Ошибка ввода, попробуйте снова")
+			continue
+		}
+		return value
 	}
-	fmt.Println(value)
-	return value
 }
 
-func conversion (originalСurrency string, value float64, resultCurrency string) float64 {
-	switch {
-	case originalСurrency == "USD" :
-		if resultCurrency == "RUB" {
-			return (value * usdToRub)
-		}
-		return value * usdToEur
-	case originalСurrency == "EUR" :
-		if resultCurrency == "USD" {
-			return (value / usdToEur)
-		}
-		return value * eurToRub
-	case originalСurrency == "RUB":
-		if resultCurrency == "EUR" {
-			return (value / eurToRub)
-		}
-		
-	}
-	return (value / usdToRub)
+func conversion (originalCurrency string, value float64, resultCurrency string, conversionValues *map[string]map[string]float64) float64 {
+	value *= (*conversionValues)[originalCurrency][resultCurrency]
+	return value
 }
