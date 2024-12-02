@@ -21,14 +21,14 @@ func main() {
 
 func getInput(output string, usingCurrency string) string {
 	var userInput string
-	var outputCurrency = "(USD, EUR, RUB)"
+	var originalCurrency = "(USD, EUR, RUB)"
 	switch usingCurrency {
 	case "USD":
-		outputCurrency = "(EUR, RUB)"
+		originalCurrency = "(EUR, RUB)"
 	case "EUR":
-		outputCurrency = "(USD, RUB)"
+		originalCurrency = "(USD, RUB)"
 	case "RUB":
-		outputCurrency = "(USD, EUR)"
+		originalCurrency = "(USD, EUR)"
 	}
 	for {
 		fmt.Printf(output + " " + outputCurrency +": ")
@@ -58,7 +58,6 @@ func getInputValue () float64 {
 		return value
 	}
 }
-
 func conversion (originalCurrency string, value float64, resultCurrency string, conversionValues *map[string]map[string]float64) float64 {
 	value *= (*conversionValues)[originalCurrency][resultCurrency]
 	return value
