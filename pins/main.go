@@ -1,15 +1,17 @@
 package main
 
 import (
+	"fmt"
+	"github.com/joho/godotenv"
+)
+
 //	"fmt"
 //	"pins/bins"
 //	"pins/storage"
-)
 
 func main() {
-/*	myStorage := bins.NewBinList()
-	bins.NewBin(myStorage)
-	fmt.Println(myStorage)
-	storage.SaveStorage(*myStorage) */ 
-	// Проверял
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Не удалось найти env файл")
+	}
 }

@@ -4,24 +4,22 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	fmt.Println("Добро пожаловать в калькулятор!")
-	var userChoise string
-	fmt.Println("\nВыберите операцию")
-	userChoise = getChoiseOperation()
-	inputNumbers := getNumbers()
-	switch userChoise {
-	case "AVG":
-		getAvg(&inputNumbers)
-	case "SUM":
-		getSum(&inputNumbers)
-	case "MED":
-		getMed(&inputNumbers, inputNumbers[0])
+	operations := map[string] func([]int) {
+		"AVG": getAvg,
+		"SUM": getSum,
+		"MED": getMed,
 	}
+	fmt.Println("Добро пожаловать в калькулятор!")
+	fmt.Println("\nВыберите операцию")
+	userChoise := getChoiseOperation()
+	inputNumbers := getNumbers()
+	operations[userChoise](inputNumbers)
 }
 
 func getChoiseOperation() string {
@@ -41,80 +39,70 @@ func getChoiseOperation() string {
 }
 
 func getNumbers() []int  {
-	var userInput, elemStr string
+	var elemStr string
 	var numbers []int 
 	for {
 		fmt.Println("Введите числа через запятую(считаются целые числа, отличные от 0):")
 		in := bufio.NewReader(os.Stdin)
-		userInput, _ = in.ReadString('\n') // Читаем всю строку
+		userInput, err := in.ReadString('\n') // Читаем всю строку
+		if err != nil {
+			fmt.Println("Ошибка чтения, попробуйте снова")
+			return nil
+		}
 		userInput = strings.ReplaceAll(userInput, " ", "") // убираем пробелы
 		userInput = strings.TrimSpace(userInput) // убираем лишнее в начале и конце
+		var inputGarbage []string
 		for len(userInput) > 0 {
 			elemStr, userInput, _ = strings.Cut(userInput, ",")
-			elemInt, _ := strconv.Atoi(elemStr) // преобразуем в int
-			if elemInt == 0 { //отсеиваем все лишние элементы - буквы и нули
+			elemInt, err := strconv.Atoi(elemStr) // преобразуем в int
+			if err != nil {
+				inputGarbage = append(inputGarbage, elemStr) // если это не число - то добавляем в "мусорку", чтоб потом сказать что это не принято
 				continue
 			}
 			numbers = append(numbers, elemInt) // добавляем отрезанный и преобразованный элемент в слайс
 		}
+		if len(inputGarbage) != 0 {
+			fmt.Printf("\nЧасть элементов удалена, так как это не числа: %v\n", inputGarbage)
+		}
 		if len(numbers) == 0 {
-			fmt.Println("Ошибка ввода, попробуйте снова")//если буквы или пустой ввод или нули - повторная попытка ввода
+			fmt.Println("Ошибка ввода, список числе пустой, попробуйте снова")//если буквы или пустой ввод или нули - повторная попытка ввода
 			continue
 		}
 		return numbers
 	}
 }
 
-func getAvg (numbers *[]int) {
+func getAvg (numbers []int) {
 	var sum = 0
-	for _, elem := range *numbers { // высчитываем сумму элементов
+	for _, elem := range numbers { // высчитываем сумму элементов
 		sum += elem
 	}
-	var result float64 = float64(sum) / float64(len(*numbers)) // высчитываем среднее арифметическое
+	var result float64 = float64(sum) / float64(len(numbers)) // высчитываем среднее арифметическое
 	fmt.Printf("\n\nСреднее арифметическое введённых чисел - %.2f \n\n", result)
 }
 
-func getSum (numbers *[]int ) {
+func getSum (numbers []int ) {
 	var sum = 0
-	for _, elem := range *numbers {
+	for _, elem := range numbers {
 		sum += elem
 	}
 	fmt.Printf("\n\nСумма введённых чисел - %v \n\n", sum)
 }
 
-
-func getMed (numbers *[]int, baseNum int) {
-	var maxNum, minNum = baseNum, baseNum //без BaseNum ругается, что слайс может быть пустой. Проверку на пустоту сделали при вводе числе - поэтому здесь она не нужна
-	var differ float64
-	for _, elem := range *numbers { // находим максимальное и минимальное числа
-		if elem > maxNum {
-			maxNum = elem
-		}
-		if elem < minNum {
-			minNum = elem
-		}
-	} 
-	med := baseNum // ставим медианой первый элемент, для того чтобы отталкиваться
-	perfectMed := (float64(maxNum + minNum)) / 2 // находим идеальную медиану
-	differMed := difference(perfectMed, float64(med)) //разница первого элемента и идеальной медианы, для дальнейшего сравнения
-	CHECK:
-	for _, elem := range *numbers { // проходимся по слайсу и находим разность между реальными числами и идеальной медианой
-		differ = difference(perfectMed, float64(elem))
-		if perfectMed == float64(elem) { // если число совпадает с идеальной медианой - прерываем цикл
-			med = elem 
-			break CHECK
-		}
-		if differ < differMed { //сравниваем удалённость текущего числа от медианы и удалённость текущей выбранной медианы
-			med = elem
-			differMed = differ
-		}
-	} // решил решить собственным алгоритмом, прямолинейным. Алгоритм quickselect пока сложновато
-	fmt.Printf("\nМедиана введённых чисел - %d\n\n", med)
-}
-
-func difference (middleNumber float64, elem float64) float64 { //для учтния случаев разницы знаков и отрицательных чисел
-	if middleNumber > elem {
-		return middleNumber - elem
+func getMed (numbers []int) {
+	sort.Slice(numbers, func(i, j int) bool {
+		return numbers[i] < numbers[j]
+	})
+	var med float64
+	if len(numbers) % 2 == 0 {
+		med = (float64(numbers[((len(numbers) / 2)) - 1]) + float64(numbers[len(numbers) / 2])) / 2
+	} else {
+		med = float64(numbers[((len(numbers) - 1) / 2)])
 	}
-	return elem - middleNumber
+	fmt.Printf("\nМедиана введённых чисел - %v\n\n", med)
 }
+// 	if middleNumber > elem {
+// 		return middleNumber - elem
+// 	}
+// 	return elem - middleNumber
+// }
