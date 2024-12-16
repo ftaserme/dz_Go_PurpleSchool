@@ -1,12 +1,15 @@
 package bins
 
 import (
-	"encoding/json"
 	"fmt"
-	"pins/file"
 	"strings"
 	"time"
 )
+
+type Db interface {
+	Read () (*BinListwithDb, error)
+	Save (BinListwithDb)
+}
 
 type Bin struct {
 	Id        int 	`json:"id"`
@@ -17,10 +20,14 @@ type Bin struct {
 
 type BinList struct {
 	Bins []Bin
-	FilePath string
 }
 
-func NewBin(binList *BinList) *BinList{
+type BinListwithDb struct {
+	BinList
+	db Db
+}
+
+func NewBin(binList *BinListwithDb) *BinListwithDb{
 	fmt.Println("Введите id: ")
 	var id int
 	fmt.Scan(&id)
@@ -55,24 +62,16 @@ func NewBin(binList *BinList) *BinList{
 	return binList
 }
 
-func NewBinList() *BinList {
-	baseStoragePath := "StorageBin.json"
-	file, err := file.ReadFile(baseStoragePath)
+func NewBinList(db Db) *BinListwithDb {
+	binList, err := db.Read()
 	if err != nil {
-		return &BinList{
-			Bins: 		[]Bin{},
-			FilePath: 	baseStoragePath,
+		return &BinListwithDb{
+			BinList: BinList{
+				Bins: 		[]Bin{},
+			},
+			db: db,
 		}
 	}
-	var binList BinList
-	err = json.Unmarshal(file, &binList)
-	if err != nil {
-		fmt.Printf("Не удалось разобрать файл %v\n", baseStoragePath)
-		return  &BinList {
-			Bins: 		[]Bin{},
-			FilePath: 	baseStoragePath,
-		}
-	}
-	return &binList
+	return binList
 	}
 
