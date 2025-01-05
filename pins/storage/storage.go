@@ -8,13 +8,23 @@ import (
 	"pins/file"
 )
 
-func SaveStorage(storage bins.BinList) {
-	context, err := json.Marshal(storage)
+type JsonStorage struct {
+	filename string
+}
+
+func NewJsonStorage(name string) *JsonStorage {
+	return &JsonStorage{
+		filename: name,
+	}
+}
+
+func (db *JsonStorage) Save (storage bins.BinListwithDb) {
+	context, err := json.Marshal(storage.BinList)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	file, err := os.Create(storage.FilePath)
+	file, err := os.Create(db.filename)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -28,17 +38,17 @@ func SaveStorage(storage bins.BinList) {
 	fmt.Println("Запись успешна")
 }
 
-func ReadStorage() (*bins.BinList) {
-	storage := bins.NewBinList()
-	data, err := file.ReadFile(storage.FilePath)
+func (db *JsonStorage) Read() (*bins.BinListwithDb, error) {
+	storage := bins.NewBinList(db)
+	data, err := file.ReadFile(db.filename)
 	if err != nil {
 		fmt.Println(err)
-		return nil
+		return nil, nil
 	}
 	err = json.Unmarshal(data, &storage)
 	if err != nil {
 		fmt.Println(err)
-		return nil
+		return nil, nil
 	}
-	return storage
+	return storage, nil
 }
