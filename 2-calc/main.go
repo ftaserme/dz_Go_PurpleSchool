@@ -9,20 +9,21 @@ import (
 	"strings"
 )
 
+
 func main() {
-	operations := map[string] func([]int) {
+	operations := map[string] func([]int) float64 {
 		"AVG": getAvg,
 		"SUM": getSum,
 		"MED": getMed,
 	}
 	fmt.Println("Добро пожаловать в калькулятор!")
 	fmt.Println("\nВыберите операцию")
-	userChoise := getChoiseOperation()
-	inputNumbers := getNumbers()
-	operations[userChoise](inputNumbers)
+	menuChoise := getMenuChoise()
+	numbers := getNumbers()
+	operations[menuChoise](numbers)
 }
 
-func getChoiseOperation() string {
+func getMenuChoise() string {
 	fmt.Println("AVG - среднее арифметическое")
 	fmt.Println("SUM - сумма")
 	fmt.Println("MED - медиана")
@@ -39,70 +40,63 @@ func getChoiseOperation() string {
 }
 
 func getNumbers() []int  {
-	var elemStr string
+	var onePosition string
 	var numbers []int 
 	for {
 		fmt.Println("Введите числа через запятую(считаются целые числа, отличные от 0):")
-		in := bufio.NewReader(os.Stdin)
-		userInput, err := in.ReadString('\n') // Читаем всю строку
+		input := bufio.NewReader(os.Stdin)
+		inputStr, err := input.ReadString('\n') // Читаем всю строку
 		if err != nil {
 			fmt.Println("Ошибка чтения, попробуйте снова")
 			return nil
 		}
-		userInput = strings.ReplaceAll(userInput, " ", "") // убираем пробелы
-		userInput = strings.TrimSpace(userInput) // убираем лишнее в начале и конце
+		inputStr = strings.ReplaceAll(inputStr, " ", "") // убираем пробелы
+		inputStr = strings.TrimSpace(inputStr) // убираем лишнее в начале и конце
 		var inputGarbage []string
-		for len(userInput) > 0 {
-			elemStr, userInput, _ = strings.Cut(userInput, ",")
-			elemInt, err := strconv.Atoi(elemStr) // преобразуем в int
+		for len(inputStr) > 0 {
+			onePosition, inputStr, _ = strings.Cut(inputStr, ",")
+			number, err := strconv.Atoi(onePosition) // преобразуем в int
 			if err != nil {
-				inputGarbage = append(inputGarbage, elemStr) // если это не число - то добавляем в "мусорку", чтоб потом сказать что это не принято
+				inputGarbage = append(inputGarbage, onePosition) // если это не число - то добавляем в "мусорку", чтоб потом сказать что это не принято
 				continue
 			}
-			numbers = append(numbers, elemInt) // добавляем отрезанный и преобразованный элемент в слайс
+			numbers = append(numbers, number) // добавляем отрезанный и преобразованный элемент в слайс
 		}
 		if len(inputGarbage) != 0 {
 			fmt.Printf("\nЧасть элементов удалена, так как это не числа: %v\n", inputGarbage)
 		}
 		if len(numbers) == 0 {
-			fmt.Println("Ошибка ввода, список числе пустой, попробуйте снова")//если буквы или пустой ввод или нули - повторная попытка ввода
-			continue
+			fmt.Println("Ошибка ввода, список чисел пустой, попробуйте снова")//если буквы или пустой ввод или нули - повторная попытка ввода
+			continue //проверку на пустой массив выполняю тут, при вводе
 		}
 		return numbers
 	}
 }
 
-func getAvg (numbers []int) {
-	var sum = 0
-	for _, elem := range numbers { // высчитываем сумму элементов
-		sum += elem
-	}
-	var result float64 = float64(sum) / float64(len(numbers)) // высчитываем среднее арифметическое
+func getAvg (numbers []int) float64 {
+	sum := getSum(numbers)
+	var result = sum / float64(len(numbers)) // высчитываем среднее арифметическое
 	fmt.Printf("\n\nСреднее арифметическое введённых чисел - %.2f \n\n", result)
+	return result
 }
 
-func getSum (numbers []int ) {
+func getSum (numbers []int ) float64 {
 	var sum = 0
 	for _, elem := range numbers {
 		sum += elem
 	}
 	fmt.Printf("\n\nСумма введённых чисел - %v \n\n", sum)
+	return float64(sum)
 }
 
-func getMed (numbers []int) {
-	sort.Slice(numbers, func(i, j int) bool {
-		return numbers[i] < numbers[j]
-	})
+func getMed (numbers []int) float64 {
+	sort.Ints(numbers)
 	var med float64
 	if len(numbers) % 2 == 0 {
 		med = (float64(numbers[((len(numbers) / 2)) - 1]) + float64(numbers[len(numbers) / 2])) / 2
 	} else {
 		med = float64(numbers[((len(numbers) - 1) / 2)])
 	}
-	fmt.Printf("\nМедиана введённых чисел - %v\n\n", med)
+	fmt.Printf("\nМедиана введённых чисел - %.2f\n\n", med)
+	return med
 }
-// 	if middleNumber > elem {
-// 		return middleNumber - elem
-// 	}
-// 	return elem - middleNumber
-// }
